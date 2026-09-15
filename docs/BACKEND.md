@@ -1,6 +1,6 @@
 # Supabase setup and launch checks
 
-The owner approved free-plan setup on 15 September 2026. A dedicated James Massage Free project is running in Sydney. The schema and book function are deployed; origin configuration, rate-limit salt, public-signup restrictions and GitHub connection variables are set. Public availability reads and private-table denial checks passed. Function preflight, input-validation and disallowed-origin checks passed. Owner account creation, admin allowlisting and the full hosted smoke tests below remain pending.
+The owner approved free-plan setup on 15 September 2026. A dedicated James Massage Free project is running in Sydney. The schema and book function are deployed; origin configuration, rate-limit salt, public-signup restrictions and GitHub connection variables are set. Public availability reads and private-table denial checks passed. Function preflight, input-validation and disallowed-origin checks passed. The owner account is created and allowlisted. A rolled-back hosted transaction verified owner access, two weekly slots preserving 09:00 Melbourne across DST, remedial pricing, booked-slot exclusion, private/client session note updates and cancellation. Interactive owner login, browser booking submission and the remaining full smoke tests below still need verification.
 
 The following procedure documents setup for a new, dedicated project; do not rerun the initial migration against the existing project. Never paste passwords or secret keys into chat, source code, frontend variables or GitHub repository files.
 

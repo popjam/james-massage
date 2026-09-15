@@ -4,7 +4,7 @@ A mobile-friendly massage booking flow and private practice dashboard. Light blu
 
 ## Current status
 
-The website is connected to a Supabase Free project in Sydney. The database migration and booking Edge Function are deployed, public sign-ups are disabled, and GitHub Actions has the browser-safe connection variables. Owner account creation, admin allowlisting, and full hosted booking/admin smoke tests are still pending. No real availability, clients or email service have been added. Without backend configuration, public visitors see **Bookings are opening soon** at the time-selection step. On localhost only, a labelled in-memory demo allows the full customer and admin flows to be tested. Demo records disappear on refresh and must never contain real health information.
+The website is connected to a Supabase Free project in Sydney. The database migration and booking Edge Function are deployed, public sign-ups are disabled, and GitHub Actions has the browser-safe connection variables. The owner account is created and allowlisted. Hosted database checks passed for owner access, Melbourne recurrence, booking prices, hiding booked slots, private notes and cancellation; all test records were rolled back. Interactive owner login and the full browser booking flow still need final verification. No real availability, clients or email service have been added. Without backend configuration, public visitors see **Bookings are opening soon** at the time-selection step. On localhost only, a labelled in-memory demo allows the full customer and admin flows to be tested. Demo records disappear on refresh and must never contain real health information.
 
 ### Included
 
