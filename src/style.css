@@ -2,7 +2,8 @@
 :root {
   font-family: "DM Sans", sans-serif;
   color: #25465f;
-  background: #a8cfeb;
+  background: var(--blue);
+  color-scheme: only light;
   font-synthesis: none;
   font-size: 16px;
   --ink: #25465f;
@@ -18,6 +19,11 @@
 }
 body {
   margin: 0;
+  background: var(--blue);
+}
+#root {
+  min-height: 100vh;
+  background: var(--blue);
 }
 button,
 input,
