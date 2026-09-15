@@ -442,7 +442,7 @@ function Booking() {
                     </span>
                     <span className="treatment-copy">
                       <strong>Scratch Therapy</strong>
-                      <span>A satisfying and gentle scratching experience.</span>
+                      <span>A satisfying scratching experience.</span>
                       <small>60 minutes <span>·</span> {money(300)}</small>
                       <span className="coming-soon-label">Coming soon</span>
                     </span>
