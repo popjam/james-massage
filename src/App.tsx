@@ -426,6 +426,27 @@ function Booking() {
                       </span>
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={false}
+                    disabled
+                    className="treatment-option coming-soon"
+                  >
+                    <span className="treatment-icon scratch">
+                      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M5 32V18a4 4 0 0 1 8 0v14M16 32V11a4 4 0 0 1 8 0v21M27 32V16a4 4 0 0 1 8 0v16" />
+                        <path d="M7 18v5h4v-5a2 2 0 0 0-4 0ZM18 11v6h4v-6a2 2 0 0 0-4 0ZM29 16v5h4v-5a2 2 0 0 0-4 0Z" fill="currentColor" fillOpacity=".12" />
+                        <path d="m30 4 1 2m5 1-2 1M4 8l2 1" />
+                      </svg>
+                    </span>
+                    <span className="treatment-copy">
+                      <strong>Scratch therapy</strong>
+                      <span>A satisfying and gentle scratching experience</span>
+                      <small>60 minutes <span>·</span> {money(300)}</small>
+                      <span className="coming-soon-label">Coming soon</span>
+                    </span>
+                  </button>
                 </div>
                 <p className="soft-note">
                   <Heart size={16} /> A little less tension. A little more you.
