@@ -441,8 +441,8 @@ function Booking() {
                       </svg>
                     </span>
                     <span className="treatment-copy">
-                      <strong>Scratch therapy</strong>
-                      <span>A satisfying and gentle scratching experience</span>
+                      <strong>Scratch Therapy</strong>
+                      <span>A satisfying and gentle scratching experience.</span>
                       <small>60 minutes <span>·</span> {money(300)}</small>
                       <span className="coming-soon-label">Coming soon</span>
                     </span>
