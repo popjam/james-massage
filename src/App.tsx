@@ -155,7 +155,6 @@ export default function App() {
               </p>
             )}
             <button
-              autoFocus
               data-dialog-close
               className="primary"
               onClick={() => setPrivacy(false)}
