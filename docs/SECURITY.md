@@ -20,4 +20,4 @@ Public source contains only application code, assets, placeholder environment va
 
 Automated tests execute the actual migration in local PostgreSQL (PGlite) with anonymous, ordinary authenticated, admin and service roles. They cover access policies, server price, retries, uniqueness, recurring DST transitions, overlaps, cancellations and note separation. Local tests do not establish that a future hosted Supabase project's settings/secrets/CORS are correct; complete the hosted smoke tests in BACKEND.md before launch.
 
-No service has been enrolled in or billed. Free-tier quotas and backend backups must be reviewed at setup. A public GitHub repository is not a location for client data even if the website's admin interface requires a login.
+The owner approved and created a Supabase Free project in Sydney; no paid plan was selected. Free-tier quotas and backend backups must be reviewed at setup. A public GitHub repository is not a location for client data even if the website's admin interface requires a login.

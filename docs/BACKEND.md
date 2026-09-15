@@ -1,6 +1,8 @@
-# Connect Supabase — owner approval required before provisioning
+# Supabase setup and launch checks
 
-No Supabase account or project has been created. This procedure is for a new, dedicated project. Never paste passwords or secret keys into chat, source code, frontend variables or GitHub repository files.
+The owner approved free-plan setup on 15 September 2026. A dedicated James Massage Free project is running in Sydney. The schema and book function are deployed; origin configuration, rate-limit salt, public-signup restrictions and GitHub connection variables are set. Public availability reads and private-table denial checks passed. Function preflight, input-validation and disallowed-origin checks passed. Owner account creation, admin allowlisting and the full hosted smoke tests below remain pending.
+
+The following procedure documents setup for a new, dedicated project; do not rerun the initial migration against the existing project. Never paste passwords or secret keys into chat, source code, frontend variables or GitHub repository files.
 
 1. With owner approval, create a project; choose an Australian region if available. Review the current free-plan limits and inactivity pausing before relying on it for live bookings.
 2. Run `supabase/migrations/202609150001_bookings.sql` once in the SQL editor, or apply it with the Supabase CLI. Database tests exercise this exact migration in local PostgreSQL (PGlite), but hosted setup still needs end-to-end verification.
