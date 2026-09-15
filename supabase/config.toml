@@ -1,0 +1,3 @@
+[functions.book]
+# Clients book without an account. This function validates input and applies rate limits.
+verify_jwt = false
