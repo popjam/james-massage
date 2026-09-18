@@ -30,6 +30,8 @@ export type Client = {
   created_at: string;
 };
 export type Appointment = {
+  discount_code?: string | null;
+  discount_percent?: number;
   id: string;
   reference: string;
   slot_id: string;
@@ -53,7 +55,10 @@ export type Details = {
   consent: boolean;
   website: string;
 };
+export type Quote = { original_price: number; price: number; discount_code: string | null; discount_percent: number };
 export type Receipt = {
+  discount_code?: string | null;
+  discount_percent?: number;
   reference: string;
   treatment: Treatment;
   price: number;

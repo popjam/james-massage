@@ -8,6 +8,7 @@ import {
   type Client,
   type Details,
   type Receipt,
+  type Quote,
   type Slot,
   type Treatment,
 } from "./domain";
@@ -113,10 +114,12 @@ export async function book(
   treatment: Treatment,
   details: Details,
   requestId: string,
+  discountCode = "",
 ): Promise<Receipt> {
   if (demo) {
     if (!(await availableSlots()).some((s) => s.id === slot.id))
       throw new Error("That time has just been booked. Please choose another.");
+    const quote = await quoteBooking(treatment, discountCode);
     const c: Client = {
       id: crypto.randomUUID(),
       name: details.name.trim(),
@@ -129,7 +132,9 @@ export async function book(
     const r = {
       reference: `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       treatment,
-      price: treatments[treatment].price,
+      price: quote.price,
+      discount_code: quote.discount_code,
+      discount_percent: quote.discount_percent,
       starts_at: slot.starts_at,
       ends_at: slot.ends_at,
     };
@@ -157,6 +162,7 @@ export async function book(
       treatment,
       details,
       request_id: requestId,
+      discount_code: discountCode,
     }),
   });
   const result = await response.json().catch(() => ({}));
@@ -310,4 +316,15 @@ export async function cancelAppointment(id: string, reopen: boolean) {
     p_reopen: reopen,
   });
   if (error) throw new Error("Couldn’t cancel this appointment. Please retry.");
+}
+
+export async function quoteBooking(treatment: Treatment, code: string): Promise<Quote> {
+ const normalized = code.trim().toUpperCase();
+ if (demo) {
+   if (normalized && normalized !== 'FAMILY') throw new Error('Discount code not recognised.');
+   return {original_price:treatments[treatment].price,price:normalized?0:treatments[treatment].price,discount_code:normalized||null,discount_percent:normalized?100:0};
+ }
+ const {data,error}=await requireDB().rpc('quote_booking',{p_treatment:treatment,p_discount_code:normalized||null});
+ if(error) throw new Error(error.code==='22023'?'Discount code not recognised or no longer available.':'Couldn’t check the code. Please try again.');
+ return data as Quote;
 }

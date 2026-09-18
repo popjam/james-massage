@@ -770,6 +770,7 @@ function ClientPanel({
               <strong>
                 {treatments[appointment.treatment].name} · ${appointment.price}
               </strong>
+              {appointment.discount_code && <span>{appointment.discount_code} · {appointment.discount_percent}% off</span>}
               <span>{dateLabel(appointment.slots.starts_at)}</span>
               <span>
                 {timeLabel(appointment.slots.starts_at)} –{" "}

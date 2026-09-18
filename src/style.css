@@ -1990,3 +1990,9 @@ button:active:not(:disabled) {
   font-size: 11px;
   font-weight: 700;
 }
+
+.discount-box { margin: 18px 0 24px; font-size: 14px; }
+.discount-controls { display: flex; gap: 10px; margin: 8px 0; }
+.discount-controls input { min-width: 0; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 9px; background: white; color: var(--ink); }
+.discount-controls .secondary { width: auto; margin: 0; padding: 10px 18px; }
+.discount-box p { font-size: 13px; }

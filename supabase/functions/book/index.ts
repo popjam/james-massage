@@ -22,16 +22,17 @@ Deno.serve(async req => {
     while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>16384){await reader.cancel();return respond(413,{error:'Booking details are too long.'});}chunks.push(value);}
     const bytes=new Uint8Array(total);let at=0;for(const c of chunks){bytes.set(c,at);at+=c.length;}
     let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));}catch{return respond(400,{error:'Invalid booking details.'});}
-    const {slot_id,treatment,details:d,request_id}=payload||{};
+    const {slot_id,treatment,details:d,request_id,discount_code}=payload||{};
     if(!uuid.test(slot_id||'')||!uuid.test(request_id||'')||!['relaxation','remedial'].includes(treatment)||!d||d.consent!==true||['name','email','phone','intake_notes','body_parts','website'].some(k=>typeof d[k]!=='string'))return respond(400,{error:'Please check your booking details.'});
+    if(discount_code != null && (typeof discount_code !== 'string' || discount_code.length > 40))return respond(400,{error:'Please check your discount code.'});
     if(d.website)return respond(400,{error:'Booking could not be submitted.'});
     if(d.name.length>100||d.email.length>254||d.phone.length>30||d.intake_notes.length>2000||d.body_parts.length>1000)return respond(400,{error:'Please shorten your booking details.'});
     // Header-based limits supplement, rather than replace, per-contact throttling.
     const ip=req.headers.get('x-forwarded-for')?.split(',')[0].trim()||'unknown';
     const buckets=[{key:`ip:${await hash(ip)}`,limit:20},{key:`contact:${await hash(d.email.trim().toLowerCase())}`,limit:6}];
     for(const b of buckets){const {data,error}=await supabase.rpc('consume_booking_attempt',{p_key:b.key,p_limit:b.limit});if(error)return respond(503,{error:'Booking is temporarily unavailable. Please try again shortly.'});if(!data)return respond(429,{error:'Too many attempts. Please try again in an hour.'});}
-    const {data,error}=await supabase.rpc('create_booking',{p_slot_id:slot_id,p_treatment:treatment,p_name:d.name,p_email:d.email,p_phone:d.phone,p_intake_notes:d.intake_notes,p_body_parts:d.body_parts,p_consent:d.consent,p_request_id:request_id});
-    if(error){if(error.code==='P0002'||error.code==='23505')return respond(409,{error:'That time has just been booked. Please go back and choose another time.'});if(error.code==='22023'||error.code==='23514')return respond(400,{error:'Please check your contact details and focus areas.'});return respond(503,{error:'We couldn’t confirm your booking. Please try again.'});}
+    const {data,error}=await supabase.rpc('create_booking',{p_slot_id:slot_id,p_treatment:treatment,p_name:d.name,p_email:d.email,p_phone:d.phone,p_intake_notes:d.intake_notes,p_body_parts:d.body_parts,p_consent:d.consent,p_request_id:request_id,p_discount_code:discount_code||null});
+    if(error){if(error.code==='P0002'||error.code==='23505')return respond(409,{error:'That time has just been booked. Please go back and choose another time.'});if(error.code==='22023'||error.code==='23514')return respond(400,{error:'Please check your contact details, focus areas and discount code.'});return respond(503,{error:'We couldn’t confirm your booking. Please try again.'});}
     return respond(200,data);
   }catch{return respond(503,{error:'Booking is temporarily unavailable. Please try again.'});}
 });

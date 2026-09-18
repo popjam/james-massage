@@ -18,7 +18,7 @@ import {
   Sparkles,
   Wallet,
 } from "lucide-react";
-import { availableSlots, book, configured, demo } from "./data";
+import { availableSlots, book, configured, demo, quoteBooking } from "./data";
 import {
   calendarFile,
   dateLabel,
@@ -32,6 +32,7 @@ import {
   validateDetails,
   type Details,
   type Receipt,
+  type Quote,
   type Slot,
   type Treatment,
 } from "./domain";
@@ -180,6 +181,20 @@ function Booking() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [codeError, setCodeError] = useState("");
+  const [checkingCode, setCheckingCode] = useState(false);
+  const codeVersion = useRef(0);
+  function clearQuote() { codeVersion.current++; setQuote(null); setCodeError(""); setCheckingCode(false); }
+  async function applyCode() {
+    if (!treatment) return;
+    const version = ++codeVersion.current;
+    setCheckingCode(true); setCodeError(""); setQuote(null);
+    try { const result = await quoteBooking(treatment, discountCode); if (version === codeVersion.current) setQuote(result); }
+    catch(e) { if(version === codeVersion.current) setCodeError((e as Error).message); }
+    finally { if(version === codeVersion.current) setCheckingCode(false); }
+  }
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const requestId = useRef(crypto.randomUUID());
   const heading = useRef<HTMLHeadingElement>(null);
@@ -226,6 +241,7 @@ function Booking() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy || !slot || !treatment) return;
+    if (discountCode.trim() && !quote) { setCodeError("Please apply or remove your discount code first."); return; }
     const validation = validateDetails(details, treatment);
     setErrors(validation);
     if (Object.keys(validation).length) {
@@ -235,7 +251,7 @@ function Booking() {
     setBusy(true);
     setError("");
     try {
-      setReceipt(await book(slot, treatment, details, requestId.current));
+      setReceipt(await book(slot, treatment, details, requestId.current, quote?.discount_code || ""));
       setDetails(emptyDetails);
     } catch (e) {
       setError((e as Error).message);
@@ -305,8 +321,9 @@ function Booking() {
             </div>
             <div>
               <Wallet size={19} />
-              <span>{money(receipt.price)} AUD · pay in person</span>
+              <span>{money(receipt.price)} AUD · {receipt.price === 0 ? "Nothing to pay" : "pay in person"}</span>
             </div>
+            {receipt.discount_code && <div><span>{receipt.discount_code} · {receipt.discount_percent}% discount applied</span></div>}
             <div className="reference">
               Booking reference <strong>{receipt.reference}</strong>
             </div>
@@ -404,6 +421,8 @@ function Booking() {
                       className={`treatment-option ${treatment === t ? "selected" : ""}`}
                       onClick={() => {
                         setTreatment(t);
+                        clearQuote();
+                        requestId.current = crypto.randomUUID();
                         setDuration(false);
                       }}
                     >
@@ -617,7 +636,7 @@ function Booking() {
                     <Leaf size={17} />
                     {chosen.name} · 60 min
                   </span>
-                  <strong>{money(chosen.price)}</strong>
+                  <strong>{money(quote?.price ?? chosen.price)}</strong>
                   <span>
                     <CalendarDays size={17} />
                     {shortDate(slot.starts_at)} · {timeLabel(slot.starts_at)}
@@ -629,6 +648,16 @@ function Booking() {
                   >
                     Change
                   </button>
+                </div>
+                <div className="discount-box">
+                  <label htmlFor="discount-code">Discount code <span className="muted">(optional)</span></label>
+                  <div className="discount-controls">
+                    <input id="discount-code" value={discountCode} maxLength={40} autoComplete="off" disabled={busy}
+                      onChange={(e) => { setDiscountCode(e.target.value); clearQuote(); requestId.current = crypto.randomUUID(); }} />
+                    <button type="button" className="secondary" disabled={busy || checkingCode || !discountCode.trim()} onClick={() => void applyCode()}>{checkingCode ? "Checking…" : "Apply"}</button>
+                  </div>
+                  {quote?.discount_code && <p role="status">{quote.discount_code} applied · {quote.discount_percent}% off. Total: {money(quote.price)}{quote.price === 0 ? " · Nothing to pay." : ""}</p>}
+                  {codeError && <p role="alert" className="field-error">{codeError}</p>}
                 </div>
                 <div className="form-fields">
                   <Field
