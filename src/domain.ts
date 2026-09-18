@@ -193,3 +193,8 @@ export function calendarFile(r: Receipt) {
     "",
   ].join("\r\n");
 }
+
+export function normalizePhone(phone: string) {
+ const digits=phone.replace(/[^0-9]/g, '');
+ return /^61[23478][0-9]{8}$/.test(digits) ? '0'+digits.slice(2) : digits;
+}

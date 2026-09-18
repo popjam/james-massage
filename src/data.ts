@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   addDays,
+  normalizePhone,
   dayKey,
   melbourneInstant,
   treatments,
@@ -120,15 +121,16 @@ export async function book(
     if (!(await availableSlots()).some((s) => s.id === slot.id))
       throw new Error("That time has just been booked. Please choose another.");
     const quote = await quoteBooking(treatment, discountCode);
-    const c: Client = {
+    const existing = clients.find(c => normalizePhone(c.phone) === normalizePhone(details.phone));
+    const c: Client = existing || {
       id: crypto.randomUUID(),
       name: details.name.trim(),
       email: details.email.trim(),
-      phone: details.phone.trim(),
+      phone: normalizePhone(details.phone),
       private_notes: "",
       created_at: new Date().toISOString(),
     };
-    clients = [...clients, c];
+    if (!existing) clients = [...clients, c];
     const r = {
       reference: `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
       treatment,

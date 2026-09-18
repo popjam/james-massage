@@ -37,4 +37,4 @@ Use only explicitly designated test records, then remove them through the dashbo
 
 ## Retention and portability
 
-Agree a record retention policy with the owner before collecting real intake/health data. Arrange periodic database backups/exports outside the public repository; backup availability depends on the Supabase plan. Client identity is matched by normalised email + phone. The public form never updates existing identity/private notes. Correct or merge client records through the authenticated provider dashboard as needed.
+Agree a record retention policy with the owner before collecting real intake/health data. Arrange periodic database backups/exports outside the public repository; backup availability depends on the Supabase plan. Client identity is matched by phone number alone, with Australian +61 and domestic formats normalised to the same number. The database enforces one client per phone number. The public form never updates existing identity/private notes. Correct or merge client records through the authenticated provider dashboard as needed.
