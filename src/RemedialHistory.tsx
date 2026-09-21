@@ -1,3 +1,4 @@
+import CopyContact from "./CopyContact";
 import { useEffect, useState } from "react";
 import { Check, ChevronRight, LockKeyhole, X } from "lucide-react";
 import {
@@ -246,8 +247,8 @@ export default function RemedialHistory({
                 ? ` · ${a.discount_code} · ${a.discount_percent}% off`
                 : ""}
             </small>
-            <a href={`tel:${client.phone}`}>{client.phone}</a>
-            <a href={`mailto:${client.email}`}>{client.email}</a>
+            <CopyContact value={client.phone} label="phone number"/>
+            <CopyContact value={client.email} label="email address"/>
           </div>
           <label className="field">
             Private client notes

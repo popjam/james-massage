@@ -1,3 +1,4 @@
+import CopyContact from "./CopyContact";
 import { lazy, Suspense } from "react";
 const RemedialHistory = lazy(() => import("./RemedialHistory"));
 import { useEffect, useState } from "react";
@@ -762,14 +763,8 @@ function ClientPanel({
         </div>
         <h2 id="client-name">{client.name}</h2>
         <div className="client-contact">
-          <a href={`tel:${client.phone}`}>
-            <Phone size={16} />
-            {client.phone}
-          </a>
-          <a href={`mailto:${client.email}`}>
-            <Mail size={16} />
-            {client.email}
-          </a>
+          <CopyContact value={client.phone} label="phone number"><Phone size={16} /></CopyContact>
+          <CopyContact value={client.email} label="email address"><Mail size={16} /></CopyContact>
         </div>
         {appointment && (
           <>
