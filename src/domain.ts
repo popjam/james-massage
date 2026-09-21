@@ -1,3 +1,4 @@
+import type { HistoryForm } from "./history";
 export const ZONE = "Australia/Melbourne";
 export type Treatment = "relaxation" | "remedial";
 export const treatments = {
@@ -27,6 +28,8 @@ export type Client = {
   email: string;
   phone: string;
   private_notes: string;
+  history_profile?: Record<string, string>;
+  profile_revision?: number;
   created_at: string;
 };
 export type Appointment = {
@@ -41,6 +44,9 @@ export type Appointment = {
   intake_notes: string;
   body_parts: string;
   session_notes: string;
+  remedial_form?: HistoryForm | null;
+  form_revision?: number;
+  form_updated_at?: string | null;
   status: "confirmed" | "cancelled";
   created_at: string;
   slots: Slot;

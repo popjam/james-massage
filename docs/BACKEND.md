@@ -38,3 +38,11 @@ Use only explicitly designated test records, then remove them through the dashbo
 ## Retention and portability
 
 Agree a record retention policy with the owner before collecting real intake/health data. Arrange periodic database backups/exports outside the public repository; backup availability depends on the Supabase plan. Client identity is matched by phone number alone, with Australian +61 and domestic formats normalised to the same number. The database enforces one client per phone number. The public form never updates existing identity/private notes. Correct or merge client records through the authenticated provider dashboard as needed.
+
+## Remedial session histories
+
+Migration `202609210001_remedial_history.sql` adds a client `history_profile` and an appointment `remedial_form` snapshot. Existing private client notes and session notes are retained. Only the existing allowlisted administrator can read/save histories; public booking inputs cannot write them. `save_remedial_history` atomically saves the form and private notes, optionally updating reusable client essentials. Revision checks reject stale edits (including changes through the older private-note editor).
+
+Open a remedial appointment to complete the form. Save before navigating away. Drawings use original SVG body outlines and red coordinate strokes, with a single-view zoom, undo and clear. Signatures are manual drawings; consent is session-specific, starts unchecked and is not copied from booking consent. Existing contact details and reusable essentials prefill new forms; examination results, consent and drawings do not carry forward. Free-text booking notes are shown verbatim and are not interpreted into medical facts. Older forms retain their own essentials snapshot; turn off “Use these essentials for future forms” when editing historical details. Recorded contact fields are snapshots and do not change the client’s unique booking identity.
+
+Clinical prompts describe observations rather than diagnose conditions. References: https://www.ncbi.nlm.nih.gov/books/NBK585755/ and https://pubmed.ncbi.nlm.nih.gov/18246899/. The supplied course photos guided field coverage; original photographs and real client records are not included in the public repository.

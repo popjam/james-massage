@@ -1,3 +1,4 @@
+import { profileFromHistory } from "./history";
 import { createClient } from "@supabase/supabase-js";
 import {
   addDays,
@@ -224,7 +225,7 @@ export async function saveNotes(
   if (demo) {
     if (kind === "client")
       clients = clients.map((c) =>
-        c.id === id ? { ...c, private_notes: value } : c,
+        c.id === id ? { ...c, private_notes: value, profile_revision: (c.profile_revision || 0) + 1 } : c,
       );
     else
       appointments = appointments.map((a) =>
@@ -329,4 +330,19 @@ export async function quoteBooking(treatment: Treatment, code: string): Promise<
  const {data,error}=await requireDB().rpc('quote_booking',{p_treatment:treatment,p_discount_code:normalized||null});
  if(error) throw new Error(error.code==='22023'?'Discount code not recognised or no longer available.':'Couldn’t check the code. Please try again.');
  return data as Quote;
+}
+
+export async function saveRemedialHistory(appointment: Appointment, form: import('./history').HistoryForm, privateNotes: string, formRevision: number, profileRevision: number, updateProfile: boolean) {
+  if (demo) {
+    const a = appointments.find(a => a.id === appointment.id)!;
+    const c = clients.find(c => c.id === appointment.client_id)!;
+    if ((a.form_revision || 0) !== formRevision || (c.profile_revision || 0) !== profileRevision) throw new Error('This record changed. Reopen the appointment before saving.');
+    const result = {form_revision: formRevision + 1, profile_revision: profileRevision + 1, form_updated_at: new Date().toISOString()};
+    appointments = appointments.map(a => a.id === appointment.id ? {...a, remedial_form: structuredClone(form), ...result} : a);
+    clients = clients.map(c => c.id === appointment.client_id ? {...c, private_notes: privateNotes, profile_revision: result.profile_revision, history_profile: updateProfile ? profileFromHistory(form) : c.history_profile} : c);
+    return result;
+  }
+  const {data,error} = await requireDB().rpc('save_remedial_history', {p_appointment:appointment.id,p_form:form,p_private_notes:privateNotes,p_form_revision:formRevision,p_profile_revision:profileRevision,p_update_profile:updateProfile});
+  if (error) throw new Error(error.code === '40001' ? 'This record changed in another window. Keep a copy of your changes and reopen this appointment before saving.' : 'The history form was not saved. Please retry.');
+  return data as {form_revision:number;profile_revision:number;form_updated_at:string};
 }

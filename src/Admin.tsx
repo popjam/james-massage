@@ -1,3 +1,5 @@
+import { lazy, Suspense } from "react";
+const RemedialHistory = lazy(() => import("./RemedialHistory"));
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -590,7 +592,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         in Melbourne time
       </p>
       {(selected || selectedClient) && (
-        <ClientPanel
+        <AppointmentPanel
           key={selected?.id || selectedClient?.id}
           appointment={selected}
           client={selected?.clients || selectedClient!}
@@ -663,6 +665,11 @@ function Empty({ label }: { label: string }) {
       <p>{label}</p>
     </div>
   );
+}
+function AppointmentPanel(props: Parameters<typeof ClientPanel>[0]) {
+  return props.appointment?.treatment === 'remedial'
+    ? <Suspense fallback={<div className="modal-backdrop"><div className="modal" role="status">Loading history form…</div></div>}><RemedialHistory {...props} appointment={props.appointment}/></Suspense>
+    : <ClientPanel {...props}/>;
 }
 function ClientPanel({
   appointment,

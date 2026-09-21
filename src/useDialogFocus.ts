@@ -10,7 +10,7 @@ export function useDialogFocus() {
       current
         ? Array.from(
             current.querySelectorAll<HTMLElement>(
-              'button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+              'button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), summary, [tabindex="0"]',
             ),
           ).filter((e) => e.getClientRects().length > 0)
         : [];
