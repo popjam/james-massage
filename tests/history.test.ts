@@ -6,6 +6,9 @@ import {
   newHistory,
   profileFromHistory,
   type HistoryForm,
+  essentialChecks,
+  essentialSessionFields,
+  profileFields,
 } from "../src/history.ts";
 import type { Appointment, Client } from "../src/domain.ts";
 
@@ -21,7 +24,7 @@ test("new session carries essentials and intake, not previous examination or con
     },
   } as Client;
   const a = {
-    slots: { starts_at: "2030-10-01T00:00Z" },
+    slots: { starts_at: "2030-10-01T00:00Z", ends_at: "2030-10-01T01:30Z" },
     body_parts: "Shoulder",
     intake_notes: "Client note",
     session_notes: "Older notes",
@@ -32,11 +35,39 @@ test("new session carries essentials and intake, not previous examination or con
   assert.equal(form.fields.location, "Shoulder");
   assert.equal(form.fields.bookingNotes, "Client note");
   assert.equal(form.fields.legacyNotes, "Older notes");
-  assert.deepEqual(form.checks, {});
+  assert.equal(form.checks.clientConsent, undefined);
+  assert.ok(Object.values(form.checks).every((v) => v === false));
+  assert.equal(form.fields.date, "2030-10-01");
+  assert.equal(form.fields.duration, "90 minutes");
   assert.deepEqual(form.drawings, {});
   assert.deepEqual(form.sides, {});
   assert.equal(profileFromHistory(form).occupation, "Example work");
-  assert.equal(profileFromHistory(form).phone, undefined);
+  assert.equal(profileFromHistory(form).phone, c.phone);
+  for (const [key] of profileFields) form.essentials[key] = "Saved " + key;
+  form.essentials.name = "Recorded name";
+  form.essentials.phone = "0411111111";
+  form.essentials.email = "new@example.com";
+  for (const key of essentialSessionFields) form.fields[key] = "Saved " + key;
+  for (const key of essentialChecks) form.checks[key] = true;
+  const next = newHistory(a, {
+    ...c,
+    history_profile: profileFromHistory(form),
+  });
+  for (const key of [
+    "name",
+    "phone",
+    "email",
+    ...profileFields.map(([key]) => key),
+  ])
+    assert.equal(next.essentials[key], form.essentials[key]);
+  for (const key of essentialSessionFields.filter(
+    (key) => key !== "date" && key !== "duration",
+  ))
+    assert.equal(next.fields[key], form.fields[key]);
+  for (const key of essentialChecks) assert.equal(next.checks[key], true);
+  assert.equal(next.fields.date, "2030-10-01");
+  assert.equal(next.fields.duration, "90 minutes");
+  assert.equal(next.checks.clientConsent, undefined);
 });
 
 test("history is admin-only, atomic, per session, and rejects stale saves", async () => {
@@ -50,6 +81,7 @@ test("history is admin-only, atomic, per session, and rejects stale saves", asyn
       "202609180001_discounts.sql",
       "202609180002_client_phone.sql",
       "202609210001_remedial_history.sql",
+      "202609210002_all_essentials.sql",
     ])
       await db.exec(
         await readFile(
@@ -73,9 +105,27 @@ test("history is admin-only, atomic, per session, and rejects stale saves", asyn
     );
     const form: HistoryForm = {
       version: 1,
-      essentials: { address: "Example street", allergies: "Example allergy" },
-      fields: { reason: "Example symptoms" },
-      checks: { clientConsent: true },
+      essentials: {
+        name: "Recorded Example",
+        phone: "0411111111",
+        email: "recorded@example.com",
+        address: "Example street",
+        allergies: "Example allergy",
+        gender: "Other",
+      },
+      fields: {
+        reason: "Example symptoms",
+        date: "2030-01-01",
+        duration: "60 minutes",
+        visit: "Returning client",
+        healthUnderstanding: "Yes",
+        cautionDetails: "Example caution",
+      },
+      checks: {
+        clientConsent: true,
+        cautionAllergies: true,
+        cautionSurgery: false,
+      },
       sides: { acromion: { L: true, R: true, LNotes: "5°", RNotes: "10°" } },
       drawings: {
         pain: [
@@ -118,6 +168,10 @@ test("history is admin-only, atomic, per session, and rejects stale saves", asyn
       /permission denied/,
     );
     await db.query(sql, args);
+    const profile = await db.query<{ history_profile: Record<string, string> }>(
+      "select history_profile from public.clients",
+    );
+    assert.deepEqual(profile.rows[0].history_profile, profileFromHistory(form));
     const saved = await db.query<{ remedial_form: HistoryForm }>(
       "select remedial_form from public.appointments where id=$1",
       [a[0].id],

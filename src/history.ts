@@ -8,6 +8,7 @@ export type SideFinding = {
 };
 export type HistoryForm = {
   version: 1;
+  carryEssentials?: boolean;
   essentials: Record<string, string>;
   fields: Record<string, string>;
   checks: Record<string, boolean>;
@@ -34,32 +35,66 @@ export const profileFields = [
   ["duties", "Work duties"],
   ["hobbies", "Sports / hobbies"],
 ] as const;
+export const essentialSessionFields = [
+  "date",
+  "duration",
+  "visit",
+  "healthUnderstanding",
+  "cautionDetails",
+] as const;
+export const essentialChecks = [
+  "cautionSurgery",
+  "cautionIllness",
+  "cautionMedication",
+  "cautionAllergies",
+  "cautionOther",
+] as const;
+export function sessionDuration(a: Appointment) {
+  const minutes = Math.round(
+    (new Date(a.slots.ends_at).getTime() -
+      new Date(a.slots.starts_at).getTime()) /
+      60000,
+  );
+  return `${Number.isFinite(minutes) && minutes > 0 ? minutes : 60} minutes`;
+}
 export function newHistory(a: Appointment, c: Client): HistoryForm {
   return {
     version: 1,
     essentials: {
-      ...c.history_profile,
       name: c.name,
       phone: c.phone,
       email: c.email,
+      ...c.history_profile,
     },
     fields: {
+      ...Object.fromEntries(
+        essentialSessionFields.map((key) => [
+          key,
+          c.history_profile?.[key] || "",
+        ]),
+      ),
       date: dayKey(a.slots.starts_at),
-      duration: "60 minutes",
+      duration: sessionDuration(a),
       location: a.body_parts,
       bookingNotes: a.intake_notes,
       legacyNotes: a.session_notes,
       practitioner: "James",
     },
-    checks: {},
+    checks: Object.fromEntries(
+      essentialChecks.map((key) => [key, c.history_profile?.[key] === "true"]),
+    ),
     sides: {},
     drawings: {},
   };
 }
 export function profileFromHistory(form: HistoryForm) {
-  return Object.fromEntries(
-    profileFields.map(([key]) => [key, form.essentials[key] || ""]),
-  );
+  return Object.fromEntries([
+    ...["name", "phone", "email", ...profileFields.map(([key]) => key)].map(
+      (key) => [key, form.essentials[key] || ""],
+    ),
+    ...essentialSessionFields.map((key) => [key, form.fields[key] || ""]),
+    ...essentialChecks.map((key) => [key, String(!!form.checks[key])]),
+  ]);
 }
 export const observations = [
   [

@@ -12,6 +12,7 @@ import {
   newHistory,
   observations,
   profileFields,
+  sessionDuration,
   type HistoryForm,
 } from "./history";
 import { cancelAppointment, saveRemedialHistory } from "./data";
@@ -69,7 +70,14 @@ export default function RemedialHistory({
   onSelect: (a: Appointment) => void;
 }) {
   const [form, setForm] = useState<HistoryForm>(() =>
-    structuredClone(a.remedial_form || newHistory(a, client)),
+    structuredClone({
+      ...(a.remedial_form || newHistory(a, client)),
+      carryEssentials:
+        a.remedial_form?.carryEssentials ??
+        !history.some(
+          (h) => h.remedial_form && h.slots.starts_at > a.slots.starts_at,
+        ),
+    }),
   );
   const [notes, setNotes] = useState(client.private_notes);
   const [baseline, setBaseline] = useState(() =>
@@ -81,9 +89,10 @@ export default function RemedialHistory({
   );
   const [savedAt, setSavedAt] = useState(a.form_updated_at || "");
   const [updateProfile, setUpdateProfile] = useState(
-    !history.some(
-      (h) => h.remedial_form && h.slots.starts_at > a.slots.starts_at,
-    ),
+    form.carryEssentials ??
+      !history.some(
+        (h) => h.remedial_form && h.slots.starts_at > a.slots.starts_at,
+      ),
   );
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -247,8 +256,8 @@ export default function RemedialHistory({
                 ? ` · ${a.discount_code} · ${a.discount_percent}% off`
                 : ""}
             </small>
-            <CopyContact value={client.phone} label="phone number"/>
-            <CopyContact value={client.email} label="email address"/>
+            <CopyContact value={client.phone} label="phone number" />
+            <CopyContact value={client.email} label="email address" />
           </div>
           <label className="field">
             Private client notes
@@ -318,22 +327,60 @@ export default function RemedialHistory({
                   }
                 />
               ))}
-              {profileFields.map(([key, label, ...rest]) => (
-                <TextField
-                  key={key}
-                  label={label}
-                  type={rest[0] || "text"}
-                  value={form.essentials[key]}
-                  onChange={(v) =>
-                    setForm((f) => ({
-                      ...f,
-                      essentials: { ...f.essentials, [key]: v },
-                    }))
-                  }
-                />
-              ))}
+              {profileFields.map(([key, label, ...rest]) =>
+                key === "gender" ? (
+                  <label className="field" key={key}>
+                    {label}
+                    <select
+                      value={form.essentials.gender || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          essentials: {
+                            ...f.essentials,
+                            gender: e.target.value,
+                          },
+                        }))
+                      }
+                    >
+                      <option value="">Not recorded</option>
+                      {["Male", "Female", "Other"].map((value) => (
+                        <option key={value}>{value}</option>
+                      ))}
+                      {form.essentials.gender &&
+                        !["Male", "Female", "Other"].includes(
+                          form.essentials.gender,
+                        ) && <option>{form.essentials.gender}</option>}
+                    </select>
+                  </label>
+                ) : (
+                  <TextField
+                    key={key}
+                    label={label}
+                    type={rest[0] || "text"}
+                    value={form.essentials[key]}
+                    onChange={(v) =>
+                      setForm((f) => ({
+                        ...f,
+                        essentials: { ...f.essentials, [key]: v },
+                      }))
+                    }
+                  />
+                ),
+              )}
               {input("date", "Session date", false, undefined, "date")}
-              {input("duration", "Consultation duration")}
+              {choice("duration", "Consultation duration", [
+                ...new Set([
+                  "30 minutes",
+                  "45 minutes",
+                  "60 minutes",
+                  "75 minutes",
+                  "90 minutes",
+                  "120 minutes",
+                  sessionDuration(a),
+                  ...(form.fields.duration ? [form.fields.duration] : []),
+                ]),
+              ])}
               {choice("visit", "Visit type", [
                 "First visit",
                 "Returning client",
@@ -358,14 +405,19 @@ export default function RemedialHistory({
               <input
                 type="checkbox"
                 checked={updateProfile}
-                onChange={(e) => setUpdateProfile(e.target.checked)}
+                onChange={(e) => {
+                  setUpdateProfile(e.target.checked);
+                  setForm((f) => ({ ...f, carryEssentials: e.target.checked }));
+                }}
               />
               Use these essentials for future forms
             </label>
             <p className="small muted">
-              Updates address, health background, occupation and emergency
-              details. Recorded name, phone and email remain this session’s
-              snapshot; booking contact details are unchanged.
+              Carries all of section 01 into future forms, including recorded
+              contact details, visit type, health understanding and cautions.
+              New session dates and durations automatically use the booked
+              appointment. Review the carried details each visit. This does not
+              change the client’s booking contact details or earlier forms.
             </p>
           </details>
           <details className="history-section" open>
